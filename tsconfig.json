@@ -10,6 +10,7 @@
     "noUncheckedIndexedAccess": true,
     "moduleResolution": "NodeNext",
     "module": "NodeNext",
+    "outDir": "dist",
     "sourceMap": true,
     "declaration": true
   }
