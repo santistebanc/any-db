@@ -1,16 +1,12 @@
 {
   "name": "any-db",
   "version": "1.1.0",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
-    "start": "npm run start:dev",
-    "start:prod": "node dist/index.js",
-    "start:dev": "tsx src/index.ts",
-    "build": "tsc",
-    "lint": "eslint ./src --ext .ts",
-    "lint:fix": "eslint ./src --ext .ts --fix",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "tsx test.ts",
+    "prepare": "npm run build",
+    "build": "tsc"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

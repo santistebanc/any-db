@@ -1,11 +1,16 @@
 {
   "compilerOptions": {
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "target": "ES2022",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "target": "esnext",
     "allowJs": true,
-    "declaration": true,
-    "outDir": "dist",
-  },
-  "include": ["./src/**/*"]
+    "resolveJsonModule": true,
+    "moduleDetection": "force",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "moduleResolution": "NodeNext",
+    "module": "NodeNext",
+    "sourceMap": true,
+    "declaration": true
+  }
 }

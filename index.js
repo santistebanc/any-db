@@ -53,7 +53,7 @@ async function extractChunks(listChunk) {
         const results = chunk.flatMap(c => {
             const key = c.path.slice(1).join('/');
             const hash = c.path.at(-1);
-            cannonicals[key] = (!cannonicals[key] || hash < cannonicals[key]) ? hash : cannonicals[key];
+            cannonicals[key] = (!cannonicals[key] || (hash ?? Infinity) < cannonicals[key]) ? hash : cannonicals[key];
             return c;
         });
         if (done) {
@@ -62,6 +62,7 @@ async function extractChunks(listChunk) {
         else if (next) {
             return await extract(await next());
         }
+        return [];
     }
     return await extract(listChunk);
 }
@@ -71,7 +72,8 @@ function entriesToNodes(entries) {
         const [type, id, prop] = en.path;
         const key = `${type}:${id}`;
         nodes[key] ??= { type, id };
-        nodes[key][prop] = en.value;
+        if (prop !== undefined)
+            nodes[key][prop] = en.value;
     });
     return Object.values(nodes);
 }
@@ -84,7 +86,7 @@ function db(config) {
         await config.local.clear();
         results.forEach(res => {
             currentBatchNumber = Math.max(currentBatchNumber, Number(res.path[0]));
-            config.local?.set(res.path.slice(1), res.value);
+            config.local?.set?.(res.path.slice(1), res.value);
         });
         entriesToNodes(results).forEach(n => config.onNode?.(n));
     }
@@ -92,13 +94,15 @@ function db(config) {
         if (!config.server?.list || !config.local?.set)
             return;
         async function probe(batchNum) {
-            const first = await config.server.list(String(batchNum));
-            return first.done && first.chunk.length === 0;
+            const first = await config.server?.list?.(String(batchNum));
+            return (first?.done && first.chunk.length === 0) ?? false;
         }
         async function getBatch() {
+            if (!config.server?.list)
+                return;
             const results = await extractChunks(await config.server.list());
             results.forEach(res => {
-                config.local.set(res.path.slice(1), res.value);
+                config.local?.set?.(res.path.slice(1), res.value);
             });
             entriesToNodes(results).forEach(n => config.onNode?.(n));
         }
@@ -113,7 +117,10 @@ function db(config) {
     function push(...nodes) {
         currentBatchNumber++;
         const hash = getBatchHash();
-        const allEntries = nodes.flatMap(n => [...collectPairs(n).values()]);
+        const allEntries = nodes.flatMap(n => {
+            const pairs = collectPairs(n);
+            return pairs ? [...pairs.values()] : [];
+        });
         return Promise.allSettled(allEntries.map(async ({ path, value }) => {
             await config.local?.set?.(path, value);
             await config.server?.set?.([String(currentBatchNumber), ...path, hash], value);
@@ -124,3 +131,4 @@ function db(config) {
     config.server?.subscribe?.('newbatch', () => pull());
     return { push, resetLocal, pull };
 }
+//# sourceMappingURL=index.js.map
