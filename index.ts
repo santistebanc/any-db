@@ -184,7 +184,7 @@ export function db(config: DBConfig): DBInterface {
         }
     }
     function push(...nodes: Node[]) {
-        currentBatchNumber++;
+        const batch = currentBatchNumber++;
         const hash = getBatchHash()
         const allEntries = nodes.flatMap(n => {
             const pairs = collectPairs(n);
@@ -192,7 +192,7 @@ export function db(config: DBConfig): DBInterface {
         });
         return Promise.allSettled(allEntries.map(async ({ path, value, ref }) => {
             await config.local?.set?.(path, value, ref)
-            await config.server?.set?.([String(currentBatchNumber), ...path, hash], value, ref)
+            await config.server?.set?.([String(batch), ...path, hash], value, ref)
             config.server?.publish?.('newbatch', { path, value, ref })
             return { path, value, ref }
         }))
